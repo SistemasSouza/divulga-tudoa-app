@@ -1,9 +1,22 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Space } from 'antd';
+
+import api from '../../services/api';
 
 import TableCustom from '../../components/TableCustom';
 
 export default function Relatorio() {
+
+  const [clientes, setClientes] = useState([]);
+
+  useEffect(() => {
+    async function obterClientes() {
+      const response = await api.get('clientes');
+      setClientes(response.data);
+    }
+
+    obterClientes();
+  }, [])
 
   const columns = [
     {
@@ -56,14 +69,16 @@ export default function Relatorio() {
   return (
     <>
       <div className="filters">
-        <select onChange={handleChange}>
-          <option value="jack">Jack</option>
-          <option value="lucy">Lucy</option>
-          <option value="Yiminghe">yiminghe</option>
-        </select>
-        <input placeholder="Data de Inicio" type="date"/>
-        <input placeholder="Data de Termino" type="date"/>
-        <button className="btn btn-primary">Filtrar</button>  
+       <select>
+         <option>-- Selecione um cliente --</option>
+         {
+           clientes.map((item) => <option key={item.id} value={item.id}>{item.nome}</option>)
+         }
+       </select>
+
+        <input placeholder="Data de Inicio" type="date" />
+        <input placeholder="Data de Termino" type="date" />
+        <button className="btn btn-primary">Filtrar</button>
       </div>
       <TableCustom data={data} columns={columns} />
     </>

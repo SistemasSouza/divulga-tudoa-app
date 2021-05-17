@@ -1,28 +1,41 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+
+import api from '../../services/api';
 
 export default function Form(props) {
     const [anuncio, setAnuncio] = useState({
-		titulo: '',
-		dataInicio: '',
-		dataTermino: '',
-		investimentoDia: '',
-		cliente: ''
-	});
+        nome: '',
+        dataInicio: '',
+        dataTermino: '',
+        investimentoPorDia: '',
+        clienteId: ''
+    });
+
+    const [clientes, setClientes] = useState([]);
+
+    useEffect(() => {
+        async function obterClientes() {
+            const response = await api.get('clientes');
+            setClientes(response.data);
+        }
+
+        obterClientes();
+    }, [])
 
     function handleChange(e) {
-		setAnuncio({
-			...anuncio,
-			[e.target.name]: e.target.value
-		});
-	};
+        setAnuncio({
+            ...anuncio,
+            [e.target.name]: e.target.value
+        });
+    };
 
-    async function handleSubmit (e) {
-		e.preventDefault();
-        console.log(anuncio)
-		//await api.post('posts', data);
+    async function handleSubmit(e) {
+        e.preventDefault();
+       
+        await api.post('anuncios', anuncio);
 
-		props.history.push('/');
-	};
+        props.history.push('/');
+    };
 
     return (
         <div className="container">
@@ -30,41 +43,42 @@ export default function Form(props) {
             <form onSubmit={handleSubmit}>
                 <div className="form-control">
                     <label>Titulo do Anuncio</label>
-                    <input type="text" 
+                    <input type="text"
                         onChange={handleChange}
-				        value={anuncio.titulo}
-                        name="titulo"/>
+                        value={anuncio.titulo}
+                        name="nome" />
                 </div>
                 <div className="form-control">
                     <label>Data de Inicio</label>
                     <input type="date"
                         onChange={handleChange}
-				        value={anuncio.dataInicio}
-                        name="dataInicio"/>
+                        value={anuncio.dataInicio}
+                        name="dataInicio" />
                 </div>
                 <div className="form-control">
                     <label>Data de Termino</label>
                     <input type="date"
                         onChange={handleChange}
-				        value={anuncio.dataTermino}
-                        name="dataTermino"/>
+                        value={anuncio.dataTermino}
+                        name="dataTermino" />
                 </div>
                 <div className="form-control">
                     <label>Investimento por dia</label>
-                    <input type="text" 
+                    <input type="text"
                         onChange={handleChange}
-				        value={anuncio.investimentoDia}
-                        name="investimentoDia"/>
+                        value={anuncio.investimentoDia}
+                        name="investimentoPorDia" />
                 </div>
                 <div className="form-control">
                     <label>Cliente</label>
-                    <select onChange={handleChange} value={anuncio.cliente} name="cliente">
-                        <option value="1">João da Silva</option>
-                        <option value="2">Maria Pereira</option>
-                        <option value="3">José Alves</option>
+                    <select name="clienteId" onChange={handleChange}>
+                        <option value="">-- Selecione o cliente --</option>
+                        {
+                            clientes.map((item) => <option key={item.id} value={item.id}>{item.nome}</option>)
+                        }
                     </select>
                 </div>
-                <button type="submit" className="btn btn-primary">Salvar</button>   
+                <button type="submit" className="btn btn-primary">Salvar</button>
             </form>
         </div>
     )

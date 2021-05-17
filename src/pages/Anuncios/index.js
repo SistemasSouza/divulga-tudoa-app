@@ -1,10 +1,24 @@
-import React from 'react';
+import React, {useEffect, useState } from 'react';
 import { Space } from 'antd';
 import { Link } from 'react-router-dom';
 
 import TableCustom from '../../components/TableCustom'
 
+import api from '../../services/api';
+import formatValue from '../../utils/formataValor';
+
 export default function Anuncio() {
+
+    const [anuncios, setAnuncios] = useState([]);
+
+    useEffect(() =>{
+        async function obterAnuncios(){
+            const response = await api.get('/anuncios');
+            setAnuncios(response.data);
+        }
+
+        obterAnuncios();
+    } ,[])
 
     const columns = [
         {
@@ -44,17 +58,14 @@ export default function Anuncio() {
         },
     ];
 
-    const data = [
-        {
-            key: '1',
-            anuncio: 'John Brown',
-            cliente: 32,
-            dataInicio: 'New York No. 1 Lake Park',
-            dataTermino: 'New York No. 1 Lake Park',
-            investimentoDia: 'New York No. 1 Lake Park',
-        },
-
-    ];
+    const data = anuncios.map((item) =>({
+           key: item.id, 
+           anuncio: item.nome,
+           cliente: item.cliente,
+           dataInicio: item.data_inicio,
+           dataTermino: item.data_termino,
+           investimentoDia: formatValue(item.investimento_por_dia)
+    }))
 
    
     return (

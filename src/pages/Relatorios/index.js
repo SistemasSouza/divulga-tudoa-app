@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Space } from 'antd';
 
 import api from '../../services/api';
 
@@ -8,22 +7,39 @@ import TableCustom from '../../components/TableCustom';
 export default function Relatorio() {
 
   const [clientes, setClientes] = useState([]);
+  const [anuncios, setAnuncios] = useState([]);
+
+  const [filtros, setFiltros] = useState({
+    clienteId: '',
+    dataInicio: '',
+    dataTermino: '',
+  })
 
   useEffect(() => {
     async function obterClientes() {
-      const response = await api.get('clientes');
+      const response = await api.get('/clientes');
       setClientes(response.data);
     }
 
+    async function obterRelatorio(){
+      const response = await api.get('/relatorio/1');
+      setAnuncios(response.data);
+    }
+
     obterClientes();
-  }, [])
+    obterRelatorio();
+  }, [anuncios])
 
   const columns = [
+    {
+      title: 'Anuncio',
+      dataIndex: 'anuncio',
+      key: 'anuncio',
+    },
     {
       title: 'Valor Investido',
       dataIndex: 'valorInvestido',
       key: 'valorInvestido',
-      render: text => <span>{text}</span>,
     },
     {
       title: 'Qtd Máxima de Visualização',
@@ -37,48 +53,45 @@ export default function Relatorio() {
     },
     {
       title: 'Qtd Máxima de Compartilhamentos',
-      dataIndex: 'qtdCompartilhamento',
+      dataIndex: 'qtdCompartilhamentos',
       key: 'qtdCompartilhamentos',
     },
-    {
-      title: 'Acões',
-      key: 'action',
-      render: (text, record) => (
-        <Space size="middle">
-          <span>Delete</span>
-        </Space>
-      ),
-    },
   ];
 
-  const data = [
-    {
-      key: '1',
-      valorInvestido: 'John Brown',
-      qtdVisualizacao: 32,
-      qtdCliques: 'New York No. 1 Lake Park',
-      qtdCompartilhamento: 'New York No. 1 Lake Park',
-      qtdCompartilhamentos: 'New York No. 1 Lake Park',
-    }
-  ];
+  const data = (anuncios || []).map((item) => ({
+    key: item.id,
+    anuncio: item.nome,
+    valorInvestido: item.investimento_por_dia,
+    qtdVisualizacao: 100,
+    qtdCliques: 100,
+    qtdCompartilhamentos: 100
+  }));
 
-  function handleChange(value) {
-    console.log(`selected ${value}`);
+  function handleChange(e) {
+    setFiltros({
+      ...filtros,
+      [e.target.name]: e.target.value
+    });
+  }
+
+  async function handleFilter() {
+    const response = api.get(`relatorio/${filtros.clienteId}`);
+    setAnuncios(response.data)
   }
 
   return (
     <>
       <div className="filters">
-       <select>
-         <option>-- Selecione um cliente --</option>
-         {
-           clientes.map((item) => <option key={item.id} value={item.id}>{item.nome}</option>)
-         }
-       </select>
+        <select name="clienteId" onChange={handleChange}>
+          <option>-- Selecione um cliente --</option>
+          {
+            clientes.map((item) => <option key={item.id} value={item.id}>{item.nome}</option>)
+          }
+        </select>
 
-        <input placeholder="Data de Inicio" type="date" />
-        <input placeholder="Data de Termino" type="date" />
-        <button className="btn btn-primary">Filtrar</button>
+        <input placeholder="Data de Inicio" type="date" name="dataInicio" onChange={handleChange} />
+        <input placeholder="Data de Termino" type="date" name="dataFim" onChange={handleChange} />
+        <button className="btn btn-primary" onClick={handleFilter}>Filtrar</button>
       </div>
       <TableCustom data={data} columns={columns} />
     </>
